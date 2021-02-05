@@ -1,0 +1,8 @@
+boto3
+pandas
+numpy
+plotly
+chart_studio
+pretty_html_table
+python-dotenv
+fbprophet
