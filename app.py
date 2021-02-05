@@ -14,20 +14,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # environmental variables
-bucket = os.getenv('bucketName')
-initial_dataset = os.getenv('initial_dataset')
-forecast_dataset = os.getenv('forecast_dataset')
-subject = os.getenv('subject')
-to = os.getenv('to')
-forecasting_period = os.getenv('forecasting_period')
-forecasting_frequency = os.getenv('forecasting_frequency')
-country_holidays = os.getenv('country_holidays')
-aws_access_key_id = os.getenv('aws_access_key_id')
-aws_secret_access_key = os.getenv('aws_secret_access_key')
-username = os.getenv('plotly_username')
-api_key = os.getenv('plotly_api_key')
-user = os.getenv('email_user')
-password = os.getenv('email_password')
 
 
 
