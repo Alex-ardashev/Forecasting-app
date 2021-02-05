@@ -7,14 +7,14 @@ from email.mime.multipart import MIMEMultipart
 import chart_studio
 import chart_studio.plotly as py
 import plotly.graph_objs as go
+
 from pretty_html_table import build_table
 from fbprophet import Prophet
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# environmental variables
-
+# environmental variables here
 
 
 def email_alert(subject, to, dataset_fact, forecast, df_merged, username, api_key, user, password):
@@ -24,14 +24,15 @@ def email_alert(subject, to, dataset_fact, forecast, df_merged, username, api_ke
     # change URL of the graph per new client
     # make table and pull it to email body
 
-    email_body = build_table(df_merged, 'blue_light')
+    email_body = build_table(df_merged, 'red_light')
     # plotting
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=dataset_fact['ds'], y=dataset_fact['y'], name='value_fact', ))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], name='Prediction_lowest', ))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], fill='tonexty', name='Prediction_highest', ))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['trend'], name='Trend', ))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yearly'], name='Yearly', ))
+
+    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], name='Lowest expected value',line=dict(color='rgb(231,107,243)', width=2), line_shape='spline', ))
+    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], fill='tonexty', name='Highest expected value',line=dict(color='rgb(231,107,243)', width=2), line_shape='spline', ))
+    fig.add_trace(go.Scatter(x=dataset_fact['ds'], y=dataset_fact['y'], name='Real value', line=dict(color='royalblue', width=2), line_shape='spline', ))
+    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['trend'], name='General trend', line_shape='spline', ))
+    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yearly'], name='Yearly seasonality', ))
     # fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['rain'], name='Rain',))
     # fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['temp'], name='Temp',))
     # fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['holidays'], name='Holidays', ))
@@ -43,7 +44,7 @@ def email_alert(subject, to, dataset_fact, forecast, df_merged, username, api_ke
     api_key = api_key # your api key - go to profile > settings > regenerate key
     chart_studio.tools.set_credentials_file(username=username, api_key=api_key)
     # generate URL of the plot
-    url = py.plot(fig, auto_open=False, filename='email-report-graph-2')
+    url = py.plot(fig, auto_open=False, filename=plotly_graph)
 
     template = (''
                 #'<a href="{graph_url}" target="_blank">'  # Open the interactive graph when you click on the image
@@ -52,7 +53,8 @@ def email_alert(subject, to, dataset_fact, forecast, df_merged, username, api_ke
                 #'{caption}'  # Optional caption to include below the graph
                 '<br>'  # Line break
                 '<a href="{graph_url}" style="color: rgb(0,0,0); text-decoration: none; font-weight: 200;" target="_blank">'
-                'Click to see the interactive graph'  # Direct readers to Plotly for commenting, interactive graph
+                #'Click to see the interactive graph'
+                '<img src="{graph_url}.png">'# Direct readers to Plotly for commenting, interactive graph
                 '</a>'
                 '<br>'
                 '<br>'  # Line break
@@ -129,13 +131,12 @@ def main():
     df_merged['Alert'] = np.where(
         (df_merged['y'] < df_merged['yhat_lower']), f'{percentage.iloc[-1]}% Lower than expected', (np.where (df_merged['y'] > df_merged['yhat_upper'], f'{percentage.iloc[-1]}% Higher than expected', 'No')))
     df_merged = df_merged[['ds', 'yhat_lower', 'yhat', 'yhat_upper', 'y','Alert']].tail(1)
-    df_merged.columns = ['Date', 'Lowest expected value', 'Expected prediction', 'Highest expected value',
+    df_merged.columns = ['Date', 'Lowest expected value', 'Expected value', 'Highest expected value',
                          'Actual value', 'Alert']
     print(df_merged)
 
     if df_merged.iloc[0]['Alert'] != 'No':
-        pass
-        #email_alert(subject, to, dataset_fact, forecast, df_merged, username, api_key, user, password)
+        email_alert(subject, to, dataset_fact, forecast, df_merged, username, api_key, user, password)
     else:
         pass
 
