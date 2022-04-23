@@ -1,5 +1,4 @@
 # base image
-# a little overkill but need it to install dot cli for dtreeviz
 FROM ubuntu:18.04
 
 # ubuntu installing - python, pip
